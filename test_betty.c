@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
 /**
- *main - A program to write to a user
+ *main - A program to write to the user
  *Return: an integer 1 always
  */
 
 int main(void)
 {
-	write(2, "this is our first shell project", 59);
+	write(2, "This is our first Shell project", 59);
 	return (1);
 }
 
