@@ -7,7 +7,7 @@
 
 int main(void)
 {
-	write(2, "This is our first Shell project", 59);
+	write(2, "This is our first Shell project", 32);
 	return (1);
 }
 
