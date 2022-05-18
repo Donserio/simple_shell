@@ -71,7 +71,7 @@ void help_cd(void)
 }
 
 /**
- * help_exit - Displays information on the hsh builtin command 'exit'.
+ * help_exit - Displays information on the hsh builtin commands 'exit'.
  */
 void help_exit(void)
 {
