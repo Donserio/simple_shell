@@ -1,71 +1,59 @@
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef _SHELL_H_
+#define _SHELL_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdarg.h>
 #include <limits.h>
-#include <sys/wait.h>
+#include <errno.h>
+#include <stddef.h>
+#define BUFSIZE 1024
 
-#define EXEC 1
-#define MAXARGS 10
-#define DELIM " \t\n\r\a"
+int shell_builtin(char **args, char *line);
+void shell_run(char **args, char *line);
+int _strcmp(char *s1, char *s2);
+typedef void sigfunc(int);
+void sig_handler(int signo);
+int _putchar(char c);
+char *_strcat(char *dest, char *src);
+
+
+
+/* parser.c */
+
+/*char **parser(char *string, char *delim);*/
+char **parser(char *line);
+void fork_exec(char *path, char **token, char **env);
+char *com_remover(char *path);
+int double_space_remover(char *path);
+unsigned int _wordCount(char *str);
+int _strlen(char *str);
+int *_astrlen(char **str);
+char *_strdup(char *source, unsigned int extra);
+char **tokenizer(char *buffer);
+
+/**
+ * struct built_s - linked list of builtins
+ * @name: name of builtin
+ * @p: pointer to function
+ *
+ * Description: struct for builtin functions.
+**/
+typedef struct built_s
+{
+	char *name;
+	int (*p)(void);
+
+} built_s;
 
 extern char **environ;
 
-typedef struct cmd_t
-{
-	int mode;
-	char **args;
-	int ready;
-	int status;
-} cmd_t;
-
-void open_console(void);
-void init_cmd(cmd_t *cmd);
-void prompt(int status);
-void t_error(char *s);
-int _fork(void);
-void setcmd(char *buf, cmd_t *cmd);
-void runcmd(char **input, cmd_t *cmd);
-ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-void *realloc(void *ptr, size_t originalLength, size_t newLength)
-void runcmd(char* dir, char **input, cmd_t *cmd);
-ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
-
-/* ------------------ENVIRONMENT----------------- */
-char *_which(char *input);
-int _env(char **input);
-char *_getenv(const char *name);
-
-/* ------------------BUILTINS----------------- */
-typedef struct builtins
-{
-	char *name;
-	int (*f)(char **input);
-} built_t;
-
-int parse_builtins(char **input, cmd_t *cmd);
-int exit_sh(char **input, cmd_t *cmd);
-int c_dir(char **input);
-/*---change directory----*/
-int cd_path(char *dir);
-int cd_parent(void);
-int cd_curr(void);
-int cd_back(void);
-int cd_home(void);
-
-/* ------------------STRING PARSER----------------- */
-int _isdigit(const char *str);
-char **get_toks(char *args, char *delimiter);
-void str_reverse(char *s);
-int _strcmp(char *s1, char *s2);
-char *_strcat(char *dest, char *src);
-char **_strtok(char *line, char *delim);
-int _strlen(char *s);
-
-#endif /* SHELL_H */
+#endif
