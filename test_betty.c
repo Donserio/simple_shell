@@ -5,7 +5,7 @@
  *Return: an integer 1 always
  */
 
-int main(void)
+int dear_betty(void)
 {
 	write(2, "This is our first Shell project", 32);
 	return (1);
