@@ -13,7 +13,7 @@ int hsh_unsetenv(char **args, char __attribute__((__unused__)) **front);
  *	   Otherwise - 0.
  *
  * Description: Prints one variable per line in the
- *              format 'variable'='value'.
+ *              format 'variable'='VALUE'.
  */
 int hsh_env(char **args, char __attribute__((__unused__)) **front)
 {
