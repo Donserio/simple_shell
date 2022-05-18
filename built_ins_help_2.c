@@ -6,7 +6,7 @@ void help_unsetenv(void);
 void help_history(void);
 
 /**
- * help_env - Displays information on the hsh builtin command 'env'.
+ * help_env - Displays information on the hsh builtin commands 'env'.
  */
 void help_env(void)
 {
