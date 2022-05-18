@@ -7,7 +7,7 @@ int handle_args(int *exe_ret);
 int check_args(char **args);
 
 /**
- * get_args - Gets a command from standard input.
+ * get_args - Gets a command from standarrd input.
  * @line: A buffer to store the command.
  * @exe_ret: The return value of the last executed command.
  *
