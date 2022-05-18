@@ -1,192 +1,174 @@
 #include "shell.h"
-int (*get_builtin(char *command))(char **args, char **front);
-int hsh_exit(char **args, char **front);
-int hsh_cd(char **args, char __attribute__((__unused__)) **front);
-int hsh_help(char **args, char __attribute__((__unused__)) **front);
 
 /**
- * get_builtin - Matches a command with a corresponding
- *               hsh builtin function.
- * @command: The command to match.
+ * Auth: Ekene Okoli
+ * Esther Ashinedu Uvo
  *
- * Return: A function pointer to the corresponding builtin.
+ * Description:
+ * the extended functions for main.c
  */
-int (*get_builtin(char *command))(char **args, char **front)
+
+
+/** parse_command - determines the type of the command
+ * @command: command to be parsed
+ *
+ * Return: constant representing the type of the command
+ * Description -
+ * 		 EXTERNAL_COMMAND (1) represents commands like /bin/ls
+ *		 INTERNAL_COMMAND (2) represents commands like exit, env
+ *		 PATH_COMMAND (3) represents commands found in the PATH like ls
+ *		 INVALID_COMMAND (-1) represents invalid commands
+ */
+
+int parse_command(char *command)
 {
-	builtin_t funcs[] = {
-		{ "exit", hsh_exit },
-		{ "env", hsh_env },
-		{ "setenv", hsh_setenv },
-		{ "unsetenv", hsh_unsetenv },
-		{ "cd", hsh_cd },
-		{ "alias", hsh_alias },
-		{ "help", hsh_help },
-		{ NULL, NULL }
-	};
+	int i;
+	char *internal_command[] = {"env", "exit", NULL};
+	char *path = NULL;
+
+	for (i = 0; command[i] != '\0'; i++)
+	{
+		if (command[i] == '/')
+			return (EXTERNAL_COMMAND);
+	}
+	for (i = 0; internal_command[i] != NULL; i++)
+	{
+		if (_strcmp(command, internal_command[i]) == 0)
+			return (INTERNAL_COMMAND);
+	}
+	/* @check_path - checks if a command is found in the PATH */
+	path = check_path(command);
+	if (path != NULL)
+	{
+		free(path);
+		return (PATH_COMMAND);
+	}
+
+	return (INVALID_COMMAND);
+}
+
+/**
+ * execute_command - executes a command based on it's type
+ * @tokenized_command: tokenized form of the command (ls -l == {ls, -l, NULL})
+ * @command_type: type of the command
+ *
+ * Return: void
+ */
+void execute_command(char **tokenized_command, int command_type)
+{
+	void (*func)(char **command);
+
+	if (command_type == EXTERNAL_COMMAND)
+	{
+		if (execve(tokenized_command[0], tokenized_command, NULL) == -1)
+		{
+			perror(_getenv("PWD"));
+			exit(2);
+		}
+	}
+	if (command_type == PATH_COMMAND)
+	{
+		if (execve(check_path(tokenized_command[0]), tokenized_command, NULL) == -1)
+		{
+			perror(_getenv("PWD"));
+			exit(2);
+		}
+	}
+	if (command_type == INTERNAL_COMMAND)
+	{
+		func = get_func(tokenized_command[0]);
+		func(tokenized_command);
+	}
+	if (command_type == INVALID_COMMAND)
+	{
+		print(shell_name, STDERR_FILENO);
+		print(": 1: ", STDERR_FILENO);
+		print(tokenized_command[0], STDERR_FILENO);
+		print(": not found\n", STDERR_FILENO);
+		status = 127;
+	}
+}
+
+/**
+ * check_path - checks if a command is found in the PATH
+ * @command: command to be used
+ *
+ * Return: path where the command is found in, NULL if not found
+ */
+char *check_path(char *command)
+{
+	char **path_array = NULL;
+	char *temp, *temp2, *path_cpy;
+	char *path = _getenv("PATH");
 	int i;
 
-	for (i = 0; funcs[i].name; i++)
+	if (path == NULL || _strlen(path) == 0)
+		return (NULL);
+	path_cpy = malloc(sizeof(*path_cpy) * (_strlen(path) + 1));
+	_strcpy(path, path_cpy);
+	path_array = tokenizer(path_cpy, ":");
+	for (i = 0; path_array[i] != NULL; i++)
 	{
-		if (_strcmp(funcs[i].name, command) == 0)
-			break;
+		temp2 = _strcat(path_array[i], "/");
+		temp = _strcat(temp2, command);
+		if (access(temp, F_OK) == 0)
+		{
+			free(temp2);
+			free(path_array);
+			free(path_cpy);
+			return (temp);
+		}
+		free(temp);
+		free(temp2);
 	}
-	return (funcs[i].f);
+	free(path_cpy);
+	free(path_array);
+	return (NULL);
 }
 
 /**
- * hsh_exit - Causes normal process termination
- *                for the hsh shell.
- * @args: An array of arguments containing the exit value.
- * @front: A double pointer to the beginning of args.
+ * get_func - retrieves a function based on the command given and a mapping
+ * @command: string to check against the mapping
  *
- * Return: If there are no arguments - -3.
- *         If the given exit value is invalid then - 2.
- *         O/w - exits with the given status value.
- *
- * Description: Upon returning -3, the program exits back in the main function.
+ * Return: pointer to the proper function, or null on fail
  */
-int hsh_exit(char **args, char **front)
+void (*get_func(char *command))(char **)
 {
-	int i, len_of_int = 10;
-	unsigned int num = 0, max = 1 << (sizeof(int) * 8 - 1);
+	int i;
+	function_map mapping[] = {
+		{"env", env}, {"exit", quit}
+	};
 
-	if (args[0])
+	for (i = 0; i < 2; i++)
 	{
-		if (args[0][0] == '+')
-		{
-			i = 1;
-			len_of_int++;
-		}
-		for (; args[0][i]; i++)
-		{
-			if (i <= len_of_int && args[0][i] >= '0' && args[0][i] <= '9')
-				num = (num * 10) + (args[0][i] - '0');
-			else
-				return (create_error(--args, 2));
-		}
+		if (_strcmp(command, mapping[i].command_name) == 0)
+			return (mapping[i].func);
 	}
-	else
-	{
-		return (-3);
-	}
-	if (num > max - 1)
-		return (create_error(--args, 2));
-	args -= 1;
-	free_args(args, front);
-	free_env();
-	free_alias_list(aliases);
-	exit(num);
+	return (NULL);
 }
 
 /**
- * hsh_cd - Changes the current directory of the hsh process.
- * @args: An array of arguments.
- * @front: A double pointer to the beginning of args.
+ * _getenv - gets the value of an environment variable
+ * @name: name of the environment variable
  *
- * Return: If the given string is not a directory - 2.
- *         If an error occurs - -1.
- *         Otherwise - 0.
+ * Return: the value of the variable as a string
  */
-int hsh_cd(char **args, char __attribute__((__unused__)) **front)
+char *_getenv(char *name)
 {
-	char **dir_info, *new_line = "\n";
-	char *oldpwd = NULL, *pwd = NULL;
-	struct stat dir;
+	char **my_environ;
+	char *pair_ptr;
+	char *name_cpy;
 
-	oldpwd = getcwd(oldpwd, 0);
-	if (!oldpwd)
-		return (-1);
-
-	if (args[0])
+	for (my_environ = environ; *my_environ != NULL; my_environ++)
 	{
-		if (*(args[0]) == '-' || _strcmp(args[0], "--") == 0)
+		for (pair_ptr = *my_environ, name_cpy = name;
+		     *pair_ptr == *name_cpy; pair_ptr++, name_cpy++)
 		{
-			if ((args[0][1] == '-' && args[0][2] == '\0') ||
-					args[0][1] == '\0')
-			{
-				if (_getenv("OLDPWD") != NULL)
-					(chdir(*_getenv("OLDPWD") + 7));
-			}
-			else
-			{
-				free(oldpwd);
-				return (create_error(args, 2));
-			}
+			if (*pair_ptr == '=')
+				break;
 		}
-		else
-		{
-			if (stat(args[0], &dir) == 0 && S_ISDIR(dir.st_mode)
-					&& ((dir.st_mode & S_IXUSR) != 0))
-				chdir(args[0]);
-			else
-			{
-				free(oldpwd);
-				return (create_error(args, 2));
-			}
-		}
+		if ((*pair_ptr == '=') && (*name_cpy == '\0'))
+			return (pair_ptr + 1);
 	}
-	else
-	{
-		if (_getenv("HOME") != NULL)
-			chdir(*(_getenv("HOME")) + 5);
-	}
-
-	pwd = getcwd(pwd, 0);
-	if (!pwd)
-		return (-1);
-
-	dir_info = malloc(sizeof(char *) * 2);
-	if (!dir_info)
-		return (-1);
-
-	dir_info[0] = "OLDPWD";
-	dir_info[1] = oldpwd;
-	if (hsh_setenv(dir_info, dir_info) == -1)
-		return (-1);
-
-	dir_info[0] = "PWD";
-	dir_info[1] = pwd;
-	if (hsh_setenv(dir_info, dir_info) == -1)
-		return (-1);
-	if (args[0] && args[0][0] == '-' && args[0][1] != '-')
-	{
-		write(STDOUT_FILENO, pwd, _strlen(pwd));
-		write(STDOUT_FILENO, new_line, 1);
-	}
-	free(oldpwd);
-	free(pwd);
-	free(dir_info);
-	return (0);
-}
-
-/**
- * hsh_help - Displays information about hsh builtin commands.
- * @args: An array of arguments.
- * @front: A pointer to the beginning of args.
- *
- * Return: If an error occurs - -1.
- *         Otherwise - 0.
- */
-int hsh_help(char **args, char __attribute__((__unused__)) **front)
-{
-	if (!args[0])
-		help_all();
-	else if (_strcmp(args[0], "alias") == 0)
-		help_alias();
-	else if (_strcmp(args[0], "cd") == 0)
-		help_cd();
-	else if (_strcmp(args[0], "exit") == 0)
-		help_exit();
-	else if (_strcmp(args[0], "env") == 0)
-		help_env();
-	else if (_strcmp(args[0], "setenv") == 0)
-		help_setenv();
-	else if (_strcmp(args[0], "unsetenv") == 0)
-		help_unsetenv();
-	else if (_strcmp(args[0], "help") == 0)
-		help_help();
-	else
-		write(STDERR_FILENO, name, _strlen(name));
-
-	return (0);
+	return (NULL);
 }
