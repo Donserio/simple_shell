@@ -1,62 +1,103 @@
 #include "shell.h"
 
 /**
- *env - prints the current_environnement
- *@tokenized_command: command entered
+ * tokenizer - tokenizes input and stores it into an array
+ *@input_string: input to be parsed
+ *@delim: delimiter to be used, needs to be one character string
+ *
+ *Return: array of tokens
+ */
+
+char **tokenizer(char *input_string, char *delim)
+{
+	int num_delim = 0;
+	char **av = NULL;
+	char *token = NULL;
+	char *save_ptr = NULL;
+
+	token = _strtok_r(input_string, delim, &save_ptr);
+
+	while (token != NULL)
+	{
+		av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+		av[num_delim] = token;
+		token = _strtok_r(NULL, delim, &save_ptr);
+		num_delim++;
+	}
+
+	av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+	av[num_delim] = NULL;
+
+	return (av);
+}
+
+/**
+ *print - prints a string to stdout
+ *@string: string to be printed
+ *@stream: stream to print out to
+ *
+ *Return: void, return nothing
+ */
+void print(char *string, int stream)
+{
+	int i = 0;
+
+	for (; string[i] != '\0'; i++)
+		write(stream, &string[i], 1);
+}
+
+/**
+ *remove_newline - removes new line from a string
+ *@str: string to be used
+ *
  *
  *Return: void
  */
 
-void env(char **tokenized_command __attribute__((unused)))
+void remove_newline(char *str)
 {
-	int i;
+	int i = 0;
 
-	for (i = 0; environ[i] != NULL; i++)
+	while (str[i] != '\0')
 	{
-		print(environ[i], STDOUT_FILENO);
-		print("\n", STDOUT_FILENO);
+		if (str[i] == '\n')
+			break;
+		i++;
 	}
+	str[i] = '\0';
 }
 
 /**
- * quit - exits the shell
- * @tokenized_command: command entered
+ *_strcpy - copies a string to another buffer
+ *@source: source to copy from
+ *@dest: destination to copy to
  *
  * Return: void
  */
 
-void quit(char **tokenized_command)
+void _strcpy(char *source, char *dest)
 {
-	int num_token = 0, arg;
+	int i = 0;
 
-	for (; tokenized_command[num_token] != NULL; num_token++)
+	for (; source[i] != '\0'; i++)
+		dest[i] = source[i];
+	dest[i] = '\0';
+}
+
+/**
+ *_strlen - counts string length
+ *@string: string to be counted
+ *
+ * Return: length of the string
+ */
+
+int _strlen(char *string)
+{
+	int len = 0;
+
+	if (string == NULL)
+		return (len);
+	for (; string[len] != '\0'; len++)
 		;
-	if (num_token == 1)
-	{
-		free(tokenized_command);
-		free(line);
-		free(commands);
-		exit(status);
-	}
-	else if (num_token == 2)
-	{
-		arg = _atoi(tokenized_command[1]);
-		if (arg == -1)
-		{
-			print(shell_name, STDERR_FILENO);
-			print(": 1: exit: Illegal number: ", STDERR_FILENO);
-			print(tokenized_command[1], STDERR_FILENO);
-			print("\n", STDERR_FILENO);
-			status = 2;
-		}
-		else
-		{
-			free(line);
-			free(tokenized_command);
-			free(commands);
-			exit(arg);
-		}
-	}
-	else
-		print("$: exit doesn't take more than one argument\n", STDERR_FILENO);
+	return (len);
 }
