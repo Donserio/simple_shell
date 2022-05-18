@@ -1,101 +1,61 @@
 #include "shell.h"
 
-void help_all(void);
-void help_alias(void);
-void help_cd(void);
-void help_exit(void);
-void help_help(void);
+
+	char **commands = NULL;
+	char *line = NULL;
+	char *shell_name = NULL;
+	int status = 0;
 
 /**
- * help_all - Displays all possible builtin hsh commands.
+ * main - the main shell code
+ * @argc: number of arguments passed
+ * @argv: program arguments to be parsed
+ *
+ * applies the functions in utils and helpers
+ * implements EOF
+ * Prints error on Failure
+ * Return: 0 on success
  */
-void help_all(void)
+
+
+int main(int argc __attribute__((unused)), char **argv)
 {
-	char *msg = "hsh\nThese shell commands are defined internally.\n";
+	char **current_command = NULL;
+	int i, type_command = 0;
+	size_t n = 0;
 
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "Type 'help' to see this list.\nType 'help name' to find ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "out more about the function 'name'.\n\n  alias   \t";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "alias [name[='value'] ...]\n  cd    \tcd   ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "[DIRECTORY]\n  exit    \texit [STATUS]\n  env     \tenv";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "\n  setenv  \tsetenv [VARIABLE] [VALUE]\n  unsetenv\t";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "unsetenv [VARIABLE]\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-}
+	signal(SIGINT, ctrl_c_handler);
+	shell_name = argv[0];
+	while (1)
+	{
+		non_interactive();
+		print(" ($) ", STDOUT_FILENO);
+		if (getline(&line, &n, stdin) == -1)
+		{
+			free(line);
+			exit(status);
+		}
+			remove_newline(line);
+			remove_comment(line);
+			commands = tokenizer(line, ";");
 
-/**
- * help_alias - Displays information on the hsh builtin command 'alias'.
- */
-void help_alias(void)
-{
-	char *msg = "alias: alias [name[='value'] ...]\n\tHandles aliases.\n";
+		for (i = 0; commands[i] != NULL; i++)
+		{
+			current_command = tokenizer(commands[i], " ");
+			if (current_command[0] == NULL)
+			{
+				free(current_command);
+				break;
+			}
+			type_command = parse_command(current_command[0]);
 
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "\n\talias: Prints a list of all aliases, one per line, in ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "the format name='value'.\n\talias name [name2 ...]:prints";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " the aliases name, name2, etc. one per line, in the ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "form name='value'.\n\talias name='value' [...]: Defines";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " an alias for each name whose value is given. If NAME ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "is already an alias, replace its value with value.\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-}
+			/* initializer -   */
+			initializer(current_command, type_command);
+			free(current_command);
+		}
+		free(commands);
+	}
+	free(line);
 
-/**
- * help_cd - Displays information on the hsh builtin command 'cd'.
- */
-void help_cd(void)
-{
-	char *msg = "cd: cd [DIRECTORY]\n\tChanges the current directory of the";
-
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " process to DIRECTORY.\n\n\tIf no argument is given, the ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "command is interpreted as cd $HOME. If the argument '-' is";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " given, the command is interpreted as cd $OLDPWD.\n\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "\tThe environment variables PWD and OLDPWD are updated ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "after a change of directory.\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-}
-
-/**
- * help_exit - Displays information on the hsh builtin commands 'exit'.
- */
-void help_exit(void)
-{
-	char *msg = "exit: exit [STATUS]\n\tExits the shell.\n\n\tThe ";
-
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "STATUS argument is the integer used to exit the shell.";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " If no argument is given, the command is interpreted as";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " exit 0.\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-}
-
-/**
- * help_help - Displays information on the hsh builtin command 'help'.
- */
-void help_help(void)
-{
-	char *msg = "help: help\n\tSee all possible hsh builtin commands.\n";
-
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "\n      help [BUILTIN NAME]\n\tSee specific information on each ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "builtin command.\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
+	return (status);
 }
