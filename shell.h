@@ -3,77 +3,69 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
-#include <dirent.h>
-#include <signal.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <sys/wait.h>
 
-
-/*constants*/
-#define EXTERNAL_COMMAND 1
-#define INTERNAL_COMMAND 2
-#define PATH_COMMAND 3
-#define INVALID_COMMAND -1
-
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-
-/**
- *struct map - a struct that maps a command name to a function 
- *
- *@command_name: name of the command
- *@func: the function that executes the command
- */
-
-typedef struct map
-{
-	char *command_name;
-	void (*func)(char **command);
-} function_map;
+#define EXEC 1
+#define MAXARGS 10
+#define DELIM " \t\n\r\a"
 
 extern char **environ;
-extern char *line;
-extern char **commands;
-extern char *shell_name;
-extern int status;
 
-/*helpers*/
-void print(char *, int);
-char **tokenizer(char *, char *);
-void remove_newline(char *);
-int _strlen(char *);
-void _strcpy(char *, char *);
+typedef struct cmd_t
+{
+	int mode;
+	char **args;
+	int ready;
+	int status;
+} cmd_t;
 
-/*helpers2*/
-int _strcmp(char *, char *);
-char *_strcat(char *, char *);
-int _strspn(char *, char *);
-int _strcspn(char *, char *);
-char *_strchr(char *, char);
+void open_console(void);
+void init_cmd(cmd_t *cmd);
+void prompt(int status);
+void t_error(char *s);
+int _fork(void);
+void setcmd(char *buf, cmd_t *cmd);
+void runcmd(char **input, cmd_t *cmd);
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+void *_realloc(void *ptr, size_t originalLength, size_t newLength)
+void runcmd(char* dir, char **input, cmd_t *cmd);
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
 
-/*helpers3*/
-char *_strtok_r(char *, char *, char **);
-int _atoi(char *);
-void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size);
-void ctrl_c_handler(int);
-void remove_comment(char *);
+/* ------------------ENVIRONMENT----------------- */
+char *_which(char *input);
+int _env(char **input);
+char *_getenv(const char *name);
 
-/*utils*/
-int parse_command(char *);
-void execute_command(char **, int);
-char *check_path(char *);
-void (*get_func(char *))(char **);
-char *_getenv(char *);
+/* ------------------BUILTINS----------------- */
+typedef struct builtins
+{
+	char *name;
+	int (*f)(char **input);
+} built_t;
 
-/*built_in*/
-void env(char **);
-void quit(char **);
+int parse_builtins(char **input, cmd_t *cmd);
+int exit_sh(char **input, cmd_t *cmd);
+int c_dir(char **input);
+/*---change directory----*/
+int cd_path(char *dir);
+int cd_parent(void);
+int cd_curr(void);
+int cd_back(void);
+int cd_home(void);
 
-/*main*/
-extern void non_interactive(void);
-extern void initializer(char **current_command, int type_command);
+/* ------------------STRING PARSER----------------- */
+int _isdigit(const char *str);
+char **get_toks(char *args, char *delimiter);
+void str_reverse(char *s);
+int _strcmp(char *s1, char *s2);
+char *_strcat(char *dest, char *src);
+char **_strtok(char *line, char *delim);
+int _strlen(char *s);
 
-#endif /*SHELL_H*/
+#endif /* SHELL_H */
