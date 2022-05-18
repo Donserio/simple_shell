@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include "shell.h"
 /**
  *main - A program to write to the user
  *Return: an integer 1 always
