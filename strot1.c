@@ -1,174 +1,86 @@
 #include "shell.h"
 
+int _strlen(const char *s);
+char *_strcpy(char *dest, const char *src);
+char *_strcat(char *dest, const char *src);
+char *_strncat(char *dest, const char *src, size_t n);
+
 /**
- * Auth: Ekene Okoli
- * Esther Ashinedu Uvo
+ * _strlen - Returns the length of a string.
+ * @s: A pointer to the characters string.
  *
- * Description:
- * the extended functions for main.c
+ * Return: The length of the character string.
  */
-
-
-/** parse_command - determines the type of the command
- * @command: command to be parsed
- *
- * Return: constant representing the type of the command
- * Description -
- * 		 EXTERNAL_COMMAND (1) represents commands like /bin/ls
- *		 INTERNAL_COMMAND (2) represents commands like exit, env
- *		 PATH_COMMAND (3) represents commands found in the PATH like ls
- *		 INVALID_COMMAND (-1) represents invalid commands
- */
-
-int parse_command(char *command)
+int _strlen(const char *s)
 {
-	int i;
-	char *internal_command[] = {"env", "exit", NULL};
-	char *path = NULL;
+	int length = 0;
 
-	for (i = 0; command[i] != '\0'; i++)
-	{
-		if (command[i] == '/')
-			return (EXTERNAL_COMMAND);
-	}
-	for (i = 0; internal_command[i] != NULL; i++)
-	{
-		if (_strcmp(command, internal_command[i]) == 0)
-			return (INTERNAL_COMMAND);
-	}
-	/* @check_path - checks if a command is found in the PATH */
-	path = check_path(command);
-	if (path != NULL)
-	{
-		free(path);
-		return (PATH_COMMAND);
-	}
-
-	return (INVALID_COMMAND);
+	if (!s)
+		return (length);
+	for (length = 0; s[length]; length++)
+		;
+	return (length);
 }
 
 /**
- * execute_command - executes a command based on it's type
- * @tokenized_command: tokenized form of the command (ls -l == {ls, -l, NULL})
- * @command_type: type of the command
+ * _strcpy - Copies the string pointed to by src, including the
+ *           terminating null byte, to the buffer pointed by des.
+ * @dest: Pointer to the destination of copied string.
+ * @src: Pointer to the src of the source string.
  *
- * Return: void
+ * Return: Pointer to dest.
  */
-void execute_command(char **tokenized_command, int command_type)
+char *_strcpy(char *dest, const char *src)
 {
-	void (*func)(char **command);
+	size_t i;
 
-	if (command_type == EXTERNAL_COMMAND)
-	{
-		if (execve(tokenized_command[0], tokenized_command, NULL) == -1)
-		{
-			perror(_getenv("PWD"));
-			exit(2);
-		}
-	}
-	if (command_type == PATH_COMMAND)
-	{
-		if (execve(check_path(tokenized_command[0]), tokenized_command, NULL) == -1)
-		{
-			perror(_getenv("PWD"));
-			exit(2);
-		}
-	}
-	if (command_type == INTERNAL_COMMAND)
-	{
-		func = get_func(tokenized_command[0]);
-		func(tokenized_command);
-	}
-	if (command_type == INVALID_COMMAND)
-	{
-		print(shell_name, STDERR_FILENO);
-		print(": 1: ", STDERR_FILENO);
-		print(tokenized_command[0], STDERR_FILENO);
-		print(": not found\n", STDERR_FILENO);
-		status = 127;
-	}
+	for (i = 0; src[i] != '\0'; i++)
+		dest[i] = src[i];
+	dest[i] = '\0';
+	return (dest);
 }
 
 /**
- * check_path - checks if a command is found in the PATH
- * @command: command to be used
+ * _strcat - Concantenates two strings.
+ * @dest: Pointer to destination string.
+ * @src: Pointer to source string.
  *
- * Return: path where the command is found in, NULL if not found
+ * Return: Pointer to destination string.
  */
-char *check_path(char *command)
+char *_strcat(char *dest, const char *src)
 {
-	char **path_array = NULL;
-	char *temp, *temp2, *path_cpy;
-	char *path = _getenv("PATH");
-	int i;
+	char *destTemp;
+	const char *srcTemp;
 
-	if (path == NULL || _strlen(path) == 0)
-		return (NULL);
-	path_cpy = malloc(sizeof(*path_cpy) * (_strlen(path) + 1));
-	_strcpy(path, path_cpy);
-	path_array = tokenizer(path_cpy, ":");
-	for (i = 0; path_array[i] != NULL; i++)
-	{
-		temp2 = _strcat(path_array[i], "/");
-		temp = _strcat(temp2, command);
-		if (access(temp, F_OK) == 0)
-		{
-			free(temp2);
-			free(path_array);
-			free(path_cpy);
-			return (temp);
-		}
-		free(temp);
-		free(temp2);
-	}
-	free(path_cpy);
-	free(path_array);
-	return (NULL);
+	destTemp = dest;
+	srcTemp =  src;
+
+	while (*destTemp != '\0')
+		destTemp++;
+
+	while (*srcTemp != '\0')
+		*destTemp++ = *srcTemp++;
+	*destTemp = '\0';
+	return (dest);
 }
 
 /**
- * get_func - retrieves a function based on the command given and a mapping
- * @command: string to check against the mapping
+ * _strncat - Concantenates two strings where n number
+ *            of bytes are copied from source.
+ * @dest: Pointer to destination string.
+ * @src: Pointer to source string.
+ * @n: n bytes to copy from src.
  *
- * Return: pointer to the proper function, or null on fail
+ * Return: Pointer to destination string.
  */
-void (*get_func(char *command))(char **)
+char *_strncat(char *dest, const char *src, size_t n)
 {
-	int i;
-	function_map mapping[] = {
-		{"env", env}, {"exit", quit}
-	};
+	size_t dest_len = _strlen(dest);
+	size_t i;
 
-	for (i = 0; i < 2; i++)
-	{
-		if (_strcmp(command, mapping[i].command_name) == 0)
-			return (mapping[i].func);
-	}
-	return (NULL);
-}
+	for (i = 0; i < n && src[i] != '\0'; i++)
+		dest[dest_len + i] = src[i];
+	dest[dest_len + i] = '\0';
 
-/**
- * _getenv - gets the value of an environment variable
- * @name: name of the environment variable
- *
- * Return: the value of the variable as a string
- */
-char *_getenv(char *name)
-{
-	char **my_environ;
-	char *pair_ptr;
-	char *name_cpy;
-
-	for (my_environ = environ; *my_environ != NULL; my_environ++)
-	{
-		for (pair_ptr = *my_environ, name_cpy = name;
-		     *pair_ptr == *name_cpy; pair_ptr++, name_cpy++)
-		{
-			if (*pair_ptr == '=')
-				break;
-		}
-		if ((*pair_ptr == '=') && (*name_cpy == '\0'))
-			return (pair_ptr + 1);
-	}
-	return (NULL);
+	return (dest);
 }
