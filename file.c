@@ -138,4 +138,3 @@ list_t *get_path_dir(char *path)
 
 	return (head);
 }
-
