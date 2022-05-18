@@ -7,7 +7,7 @@ char *error_2_cd(char **args);
 char *error_2_syntax(char **args);
 /**
  * error_env - Creates an error message for hsh_env errors.
- * @args: An array of arguments passed to the command.
+ * @args: An array of argument passed to the command.
  *
  * Return: The error string.
  */
