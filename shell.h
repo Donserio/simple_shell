@@ -80,7 +80,7 @@ int check_args(char **args);
 void free_args(char **args, char **front);
 char **replace_aliases(char **args);
 
-/* String functions */
+/* Strings functions */
 int _strlen(const char *s);
 char *_strcat(char *dest, const char *src);
 char *_strncat(char *dest, const char *src, size_t n);
