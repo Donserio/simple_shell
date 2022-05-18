@@ -1,152 +1,108 @@
 #include "shell.h"
 
-int shellby_alias(char **args, char __attribute__((__unused__)) **front);
-void set_alias(char *var_name, char *value);
-void print_alias(alias_t *alias);
-
 /**
- * shellby_alias - Builtin command that either prints all aliases, specific
- * aliases, or sets an alias.
- * @args: An array of argument.
- * @front: A double pointer to the beginning of args.
+ *_strcmp - compare two strings
+ *@first: first string to be compared
+ *@second: second string to be compared
  *
- * Return: If an error occurs - -1.
- *         Otherwise - 0.
+ * Return: difference of the two strings
  */
-int shellby_alias(char **args, char __attribute__((__unused__)) **front)
+
+int _strcmp(char *first, char *second)
 {
-	alias_t *temp = aliases;
-	int i, ret = 0;
-	char *value;
+	int i = 0;
 
-	if (!args[0])
+	while (first[i] != '\0')
 	{
-		while (temp)
-		{
-			print_alias(temp);
-			temp = temp->next;
-		}
-		return (ret);
-	}
-	for (i = 0; args[i]; i++)
-	{
-		temp = aliases;
-		value = _strchr(args[i], '=');
-		if (!value)
-		{
-			while (temp)
-			{
-				if (_strcmp(args[i], temp->name) == 0)
-				{
-					print_alias(temp);
-					break;
-				}
-				temp = temp->next;
-			}
-			if (!temp)
-				ret = create_error(args + i, 1);
-		}
-		else
-			set_alias(args[i], value);
-	}
-	return (ret);
-}
-
-/**
- * set_alias - Will either set an existing alias 'name' with a new value,
- * 'value' or creates a new alias with 'name' and 'value'.
- * @var_name: Name of the alias.
- * @value: Value of the alias. First character is a '='.
- */
-void set_alias(char *var_name, char *value)
-{
-	alias_t *temp = aliases;
-	int len, j, k;
-	char *new_value;
-
-	*value = '\0';
-	value++;
-	len = _strlen(value) - _strspn(value, "'\"");
-	new_value = malloc(sizeof(char) * (len + 1));
-	if (!new_value)
-		return;
-	for (j = 0, k = 0; value[j]; j++)
-	{
-		if (value[j] != '\'' && value[j] != '"')
-			new_value[k++] = value[j];
-	}
-	new_value[k] = '\0';
-	while (temp)
-	{
-		if (_strcmp(var_name, temp->name) == 0)
-		{
-			free(temp->value);
-			temp->value = new_value;
+		if (first[i] != second[i])
 			break;
-		}
-		temp = temp->next;
+		i++;
 	}
-	if (!temp)
-		add_alias_end(&aliases, var_name, new_value);
+	return (first[i] - second[i]);
 }
 
 /**
- * print_alias - Prints the alias in the format name='value'.
- * @alias: Pointer to an alias.
- */
-void print_alias(alias_t *alias)
-{
-	char *alias_string;
-	int len = _strlen(alias->name) + _strlen(alias->value) + 4;
-
-	alias_string = malloc(sizeof(char) * (len + 1));
-	if (!alias_string)
-		return;
-	_strcpy(alias_string, alias->name);
-	_strcat(alias_string, "='");
-	_strcat(alias_string, alias->value);
-	_strcat(alias_string, "'\n");
-
-	write(STDOUT_FILENO, alias_string, len);
-	free(alias_string);
-}
-/**
- * replace_aliases - Goes through the arguments and replace any matching alias
- * with their value.
- * @args: 2D pointer to the arguments.
+ *_strcat - concatenates two strings
+ *@destination: string to be concatenated to
+ *@source:  string to concatenate
  *
- * Return: 2D pointer to the arguments.
+ * Return: address of the new string
  */
-char **replace_aliases(char **args)
+
+char *_strcat(char *destination, char *source)
 {
-	alias_t *temp;
-	int i;
-	char *new_value;
+	char *new_string =  NULL;
+	int len_dest = _strlen(destination);
+	int len_source = _strlen(source);
 
-	if (_strcmp(args[0], "alias") == 0)
-		return (args);
-	for (i = 0; args[i]; i++)
+	new_string = malloc(sizeof(*new_string) * (len_dest + len_source + 1));
+	_strcpy(destination, new_string);
+	_strcpy(source, new_string + len_dest);
+	new_string[len_dest + len_source] = '\0';
+	return (new_string);
+}
+
+/**
+ *_strspn - gets the length of a prefix substring
+ *@str1: string to be searched
+ *@str2: string to be used
+ *
+ *Return: number of bytes in the initial segment of 5 which are part of accept
+ */
+
+int _strspn(char *str1, char *str2)
+{
+	int i = 0;
+	int match = 0;
+
+	while (str1[i] != '\0')
 	{
-		temp = aliases;
-		while (temp)
-		{
-			if (_strcmp(args[i], temp->name) == 0)
-			{
-				new_value = malloc(sizeof(char) * (_strlen(temp->value) + 1));
-				if (!new_value)
-				{
-					free_args(args, args);
-					return (NULL);
-				}
-				_strcpy(new_value, temp->value);
-				free(args[i]);
-				args[i] = new_value;
-				i--;
-				break;
-			}
-			temp = temp->next;
-		}
+		if (_strchr(str2, str1[i]) == NULL)
+			break;
+		match++;
+		i++;
 	}
+	return (match);
+}
 
-	return (args);
+/**
+ *_strcspn - computes segment of str1 which consists of characters not in str2
+ *@str1: string to be searched
+ *@str2: string to be used
+ *
+ *Return: index at which a char in str1 exists in str2
+ */
+
+
+int _strcspn(char *str1, char *str2)
+{
+	int len = 0, i;
+
+	for (i = 0; str1[i] != '\0'; i++)
+	{
+		if (_strchr(str2, str1[i]) != NULL)
+			break;
+		len++;
+	}
+	return (len);
+}
+
+/**
+ *_strchr - locates a char in a string
+ *@s: string to be searched
+ *@c: char to be checked
+ *
+ *Return: pointer to the first occurence of c in s
+ */
+
+char *_strchr(char *s, char c)
+{
+	int i = 0;
+
+	for (; s[i] != c && s[i] != '\0'; i++)
+		;
+	if (s[i] == c)
+		return (s + i);
+	else
+		return (NULL);
 }
