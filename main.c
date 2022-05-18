@@ -1,55 +1,79 @@
 #include "shell.h"
+/**
+ * main - main function
+ * Return: nothing
+ */
+int main(void)
+{
+char *line = NULL;
+char **args;
+size_t size = 0;
+int c;
+do {
+if (isatty(STDIN_FILENO) == 1)
+{
+_putchar('$');
+_putchar(' ');
+}
+c = getline(&line, &size, stdin);
+if (c == -1)
+{
+free(line);
+exit(0);
+}
+if (line[0] == '\n')
+{
+continue;
+}
+args = tokenizer(line);
+if (*args[0] == ' ')
+{
+free(line);
+free(args);
+break;
+}
+
+shell_builtin(args, line);
+free(args);
+free(line);
+size = 0;
+} while (1);
+return (0);
+}
+
+
 
 /**
- * main - Entry point of the shell
+ * _putchar - writes the character c to stdout
+ * @c: The character to print
  *
- * @ac: Argument count
- * @av: Argument vector
- *
- * Return: the (int)value of status.
+ * Return: On success 1.
+ * On error, -1 is returned, and errno is set appropriately.
  */
-int main(int ac __attribute__((unused)), char **av __attribute__((unused)))
+int _putchar(char c)
 {
-	char *buf, *dir;
-	struct stat st;
-	cmd_t cmd;
-	int status;
-	size_t buflen = 0;
-	pid_t id;
-	char **input;
+	return (write(1, &c, 1));
+}
 
-	/*Ensure the 3 file descriptors are open */
-	open_console();
+/**
+ * _strcat - gkjsgkjw;
+ * @dest: kfdjkla
+ * @src: fdjkkfjal
+ *
+ * Return: lkjdalk;f
+ */
 
-	/*Initialize the global cmd struct variable*/
-	init_cmd(&cmd);
+char *_strcat(char *dest, char *src)
+{
+	int i;
+	int len;
 
-	/*REPL Loop*/
-	while (cmd.ready)
+	for (len = 0; dest[len] != 0;)
 	{
-		status = isatty(STDIN_FILENO);
-		prompt(status);
-
-		if (_getline(&buf, &buflen, stdin) <= EOF)
-			cmd.ready = 0, exit(EXIT_SUCCESS);
-
-		setcmd(buf, &cmd);
-		input = get_toks(buf, DELIM);
-
-		if (parse_builtins(input, &cmd))
-			continue;
-
-		dir = _which(input[0]);
-
-		if (dir && _fork() == 0)
-			runcmd(dir, input, &cmd);
-		else if (!dir)
-			t_error("invalid command\n");
-		else
-			wait(NULL);
+		len++;
 	}
 
-	free(buf);
-	free(input);
-	return (cmd.status);
+	for (i = 0; src[i] != 0; i++)
+		dest[len + i] = src[i];
+	return (dest);
 }
