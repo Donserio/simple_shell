@@ -1,133 +1,139 @@
 #include "shell.h"
 
-int hsh_env(char **args, char __attribute__((__unused__)) **front);
-int hsh_setenv(char **args, char __attribute__((__unused__)) **front);
-int hsh_unsetenv(char **args, char __attribute__((__unused__)) **front);
 
 /**
- * hsh_env - Prints the current environment.
- * @args: An array of arguments passed to the shell.
- * @front: A double pointer to the beginning of args.
+ *_strtok_r - tokenizes a string
+ *@string: string to be tokenized
+ *@delim: delimiter to be used to tokenize the string
+ *@save_ptr: pointer to be used to keep track of the next token
  *
- * Return: If an error occurs - -1.
- *	   Otherwise - 0.
- *
- * Description: Prints one variable per line in the
- *              format 'variable'='VALUE'.
+ *Return: The next available token
  */
-int hsh_env(char **args, char __attribute__((__unused__)) **front)
+char *_strtok_r(char *string, char *delim, char **save_ptr)
 {
-	int index;
-	char nc = '\n';
+	char *finish;
 
-	if (!environ)
-		return (-1);
+	if (string == NULL)
+		string = *save_ptr;
 
-	for (index = 0; environ[index]; index++)
+	if (*string == '\0')
 	{
-		write(STDOUT_FILENO, environ[index], _strlen(environ[index]));
-		write(STDOUT_FILENO, &nc, 1);
+		*save_ptr = string;
+		return (NULL);
 	}
 
-	(void)args;
-	return (0);
+	string += _strspn(string, delim);
+	if (*string == '\0')
+	{
+		*save_ptr = string;
+		return (NULL);
+	}
+
+	finish = string + _strcspn(string, delim);
+	if (*finish == '\0')
+	{
+		*save_ptr = finish;
+		return (string);
+	}
+
+	*finish = '\0';
+	*save_ptr = finish + 1;
+	return (string);
 }
 
 /**
- * hsh_setenv - Changes or adds an environmental variable to the PATH.
- * @args: An array of arguments passed to the shell.
- * @front: A double pointer to the beginning of args.
- * Description: args[1] is the name of the new or existing PATH variable.
- *              args[2] is the value to set the new or changed variable to.
+ * _atoi - changes a string to an integer
+ * @s: the string to be changed
  *
- * Return: If an error occurs - -1.
- *         Otherwise - 0.
+ * Return: the converted int
  */
-int hsh_setenv(char **args, char __attribute__((__unused__)) **front)
+int _atoi(char *s)
 {
-	char **env_var = NULL, **new_environ, *new_value;
-	size_t size;
-	int index;
+	unsigned int n = 0;
 
-	if (!args[0] || !args[1])
-		return (create_error(args, -1));
-
-	new_value = malloc(_strlen(args[0]) + 1 + _strlen(args[1]) + 1);
-	if (!new_value)
-		return (create_error(args, -1));
-	_strcpy(new_value, args[0]);
-	_strcat(new_value, "=");
-	_strcat(new_value, args[1]);
-
-	env_var = _getenv(args[0]);
-	if (env_var)
-	{
-		free(*env_var);
-		*env_var = new_value;
-		return (0);
-	}
-	for (size = 0; environ[size]; size++)
-		;
-
-	new_environ = malloc(sizeof(char *) * (size + 2));
-	if (!new_environ)
-	{
-		free(new_value);
-		return (create_error(args, -1));
-	}
-
-	for (index = 0; environ[index]; index++)
-		new_environ[index] = environ[index];
-
-	free(environ);
-	environ = new_environ;
-	environ[index] = new_value;
-	environ[index + 1] = NULL;
-
-	return (0);
+	do {
+		if (*s == '-')
+			return (-1);
+		else if ((*s < '0' || *s > '9') && *s != '\0')
+			return (-1);
+		else if (*s >= '0'  && *s <= '9')
+			n = (n * 10) + (*s - '0');
+		else if (n > 0)
+			break;
+	} while (*s++);
+	return (n);
 }
 
 /**
- * hsh_unsetenv - Deletes an environmental variable from the PATH.
- * @args: An array of arguments passed to the shell.
- * @front: A double pointer to the beginning of args.
- * Description: args[1] is the PATH variable to remove.
+ * _realloc - reallocates a memory block
+ * @ptr: pointer to the memory previously allocated with a call to malloc
+ * @old_size: size of ptr
+ * @new_size: size of the new memory to be allocated
  *
- * Return: If an error occurs - -1.
- *         Otherwise - 0.
+ * Return: pointer to the address of the new memory block
  */
-int hsh_unsetenv(char **args, char __attribute__((__unused__)) **front)
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
 {
-	char **env_var, **new_environ;
-	size_t size;
-	int index, index2;
+	void *temp_block;
+	unsigned int i;
 
-	if (!args[0])
-		return (create_error(args, -1));
-	env_var = _getenv(args[0]);
-	if (!env_var)
-		return (0);
-
-	for (size = 0; environ[size]; size++)
-		;
-
-	new_environ = malloc(sizeof(char *) * size);
-	if (!new_environ)
-		return (create_error(args, -1));
-
-	for (index = 0, index2 = 0; environ[index]; index++)
+	if (ptr == NULL)
 	{
-		if (*env_var == environ[index])
+		temp_block = malloc(new_size);
+		return (temp_block);
+	}
+	else if (new_size == old_size)
+		return (ptr);
+	else if (new_size == 0 && ptr != NULL)
+	{
+		free(ptr);
+		return (NULL);
+	}
+	else
+	{
+		temp_block = malloc(new_size);
+		if (temp_block != NULL)
 		{
-			free(*env_var);
-			continue;
+			for (i = 0; i < min(old_size, new_size); i++)
+				*((char *)temp_block + i) = *((char *)ptr + i);
+			free(ptr);
+			return (temp_block);
 		}
-		new_environ[index2] = environ[index];
-		index2++;
-	}
-	free(environ);
-	environ = new_environ;
-	environ[size - 1] = NULL;
+		else
+			return (NULL);
 
-	return (0);
+	}
+}
+
+/**
+ * ctrl_c_handler - handles the signal raised by CTRL-C
+ * @signum: signal number
+ *
+ * Return: void
+ */
+void ctrl_c_handler(int signum)
+{
+	if (signum == SIGINT)
+		print("\n($) ", STDIN_FILENO);
+}
+
+/**
+ * remove_comment - removes/ignores everything after a '#' char
+ * @input: input to be used
+ *
+ * Return: void
+ */
+void remove_comment(char *input)
+{
+	int i = 0;
+
+	if (input[i] == '#')
+		input[i] = '\0';
+	while (input[i] != '\0')
+	{
+		if (input[i] == '#' && input[i - 1] == ' ')
+			break;
+		i++;
+	}
+	input[i] = '\0';
 }
