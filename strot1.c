@@ -1,86 +1,104 @@
 #include "shell.h"
 
-int _strlen(const char *s);
-char *_strcpy(char *dest, const char *src);
-char *_strcat(char *dest, const char *src);
-char *_strncat(char *dest, const char *src, size_t n);
+int token_len(char *str, char *delim);
+int count_tokens(char *str, char *delim);
+char **_strtok(char *line, char *delim);
 
 /**
- * _strlen - Returns the length of a string.
- * @s: A pointer to the characters string.
+ * token_len - Locates the delimiter index marking the end
+ *             of the first token contained within a string.
+ * @str: The string to be searched.
+ * @delim: The delimiter character.
  *
- * Return: The length of the character string.
+ * Return: The delimiter index marking the end of
+ *         the intitial token pointed to be str.
  */
-int _strlen(const char *s)
+int token_len(char *str, char *delim)
 {
-	int length = 0;
+	int index = 0, len = 0;
 
-	if (!s)
-		return (length);
-	for (length = 0; s[length]; length++)
-		;
-	return (length);
+	while (*(str + index) && *(str + index) != *delim)
+	{
+		len++;
+		index++;
+	}
+
+	return (len);
 }
 
 /**
- * _strcpy - Copies the string pointed to by src, including the
- *           terminating null byte, to the buffer pointed by des.
- * @dest: Pointer to the destination of copied string.
- * @src: Pointer to the src of the source string.
+ * count_tokens - Counts the number of delimited
+ *                words contained within a string.
+ * @str: The string to be searched.
+ * @delim: The delimiter character.
  *
- * Return: Pointer to dest.
+ * Return: The number of words contained within str.
  */
-char *_strcpy(char *dest, const char *src)
+int count_tokens(char *str, char *delim)
 {
-	size_t i;
+	int index, tokens = 0, len = 0;
 
-	for (i = 0; src[i] != '\0'; i++)
-		dest[i] = src[i];
-	dest[i] = '\0';
-	return (dest);
+	for (index = 0; *(str + index); index++)
+		len++;
+
+	for (index = 0; index < len; index++)
+	{
+		if (*(str + index) != *delim)
+		{
+			tokens++;
+			index += token_len(str + index, delim);
+		}
+	}
+
+	return (tokens);
 }
 
 /**
- * _strcat - Concantenates two strings.
- * @dest: Pointer to destination string.
- * @src: Pointer to source string.
+ * _strtok - Tokenizes a string.
+ * @line: The string.
+ * @delim: The delimiter character to tokenize the string by.
  *
- * Return: Pointer to destination string.
+ * Return: A pointer to an array containing the tokenized words.
  */
-char *_strcat(char *dest, const char *src)
+char **_strtok(char *line, char *delim)
 {
-	char *destTemp;
-	const char *srcTemp;
+	char **ptr;
+	int index = 0, tokens, t, letters, l;
 
-	destTemp = dest;
-	srcTemp =  src;
+	tokens = count_tokens(line, delim);
+	if (tokens == 0)
+		return (NULL);
 
-	while (*destTemp != '\0')
-		destTemp++;
+	ptr = malloc(sizeof(char *) * (tokens + 2));
+	if (!ptr)
+		return (NULL);
 
-	while (*srcTemp != '\0')
-		*destTemp++ = *srcTemp++;
-	*destTemp = '\0';
-	return (dest);
-}
+	for (t = 0; t < tokens; t++)
+	{
+		while (line[index] == *delim)
+			index++;
 
-/**
- * _strncat - Concantenates two strings where n number
- *            of bytes are copied from source.
- * @dest: Pointer to destination string.
- * @src: Pointer to source string.
- * @n: n bytes to copy from src.
- *
- * Return: Pointer to destination string.
- */
-char *_strncat(char *dest, const char *src, size_t n)
-{
-	size_t dest_len = _strlen(dest);
-	size_t i;
+		letters = token_len(line + index, delim);
 
-	for (i = 0; i < n && src[i] != '\0'; i++)
-		dest[dest_len + i] = src[i];
-	dest[dest_len + i] = '\0';
+		ptr[t] = malloc(sizeof(char) * (letters + 1));
+		if (!ptr[t])
+		{
+			for (index -= 1; index >= 0; index--)
+				free(ptr[index]);
+			free(ptr);
+			return (NULL);
+		}
 
-	return (dest);
+		for (l = 0; l < letters; l++)
+		{
+			ptr[t][l] = line[index];
+			index++;
+		}
+
+		ptr[t][l] = '\0';
+	}
+	ptr[t] = NULL;
+	ptr[t + 1] = NULL;
+
+	return (ptr);
 }
