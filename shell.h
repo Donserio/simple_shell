@@ -1,5 +1,6 @@
 #ifndef _SHELL_H_
 #define _SHELL_H_
+#define start main
 
 #include <string.h>
 #include <signal.h>
