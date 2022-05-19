@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <unistd>
 #define start main
 
 void start() 
 {  
-   printf("Hello, World!!!");  
+   write(2,"Hello world!", 12);
+   return (1);
 }  
