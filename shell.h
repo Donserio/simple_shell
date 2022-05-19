@@ -16,7 +16,6 @@
 #include <errno.h>
 #include <stddef.h>
 #define BUFSIZE 1024
-#define start main
 
 int shell_builtin(char **args, char *line);
 void shell_run(char **args, char *line);
@@ -25,6 +24,7 @@ typedef void sigfunc(int);
 void sig_handler(int signo);
 int _putchar(char c);
 char *_strcat(char *dest, char *src);
+int dear(void);
 
 
 /* parser.c */
