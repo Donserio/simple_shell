@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd>
+#include "shell.h"
 #define start main
 
 int start()
