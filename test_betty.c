@@ -1,4 +1,5 @@
 #include "shell.h"
+#define start main
 
 void start() 
 {  
