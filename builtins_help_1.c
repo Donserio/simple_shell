@@ -33,20 +33,20 @@ void help_all(void)
  */
 void help_alias(void)
 {
-	char *msg = "alias: alias [NAME[='VALUE'] ...]\n\tHandles aliases.\n";
+	char *msg = "alias: alias [name[='value'] ...]\n\tHandles aliases.\n";
 
 	write(STDOUT_FILENO, msg, _strlen(msg));
 	msg = "\n\talias: Prints a list of all aliases, one per line, in ";
 	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "the format NAME='VALUE'.\n\talias name [name2 ...]:prints";
+	msg = "the format name='value'.\n\talias name [name2 ...]:prints";
 	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " the aliases NAME, NAME2, etc. one per line, in the ";
+	msg = " the aliases name, name2, etc. one per line, in the ";
 	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "form NAME='VALUE'.\n\talias NAME='VALUE' [...]: Defines";
+	msg = "form name='value'.\n\talias name='value' [...]: Defines";
 	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = " an alias for each name whose VALUE is given. If NAME ";
+	msg = " an alias for each name whose value is given. If name ";
 	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "is already an alias, replace its VALUE with VALUE.\n";
+	msg = "is already an alias, replace its value with value.\n";
 	write(STDOUT_FILENO, msg, _strlen(msg));
 }
 
