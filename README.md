@@ -3,7 +3,7 @@
 A simple UNIX command interpreter 
 ## Description :speech_balloon:
 
-**Shellby** is a simple UNIX command language interpreter that reads commands from either a file or standard input and executes them.
+**hsh** is a simple UNIX command language interpreter that reads commands from either a file or standard input and executes them.
 
 ### Invocation :running:
 
@@ -13,7 +13,7 @@ To invoke **hsh**, compile all `.c` files in the repository and run the resultin
 
 ```
 gcc *.c -o hsh
-./shellby
+./hsh
 ```
 
 **hsh** can be invoked both interactively and non-interactively. If **hsh** is invoked with standard input not connected to a terminal, it reads and executes received commands in order.
@@ -25,7 +25,7 @@ $ echo "echo 'hello'" | ./hsh
 $
 ```
 
-If **shellby** is invoked with standard input connected to a terminal (determined by [isatty](https://linux.die.net/man/3/isatty)(3)), an *interactive* shell is opened. When executing interactively, **shellby** displays the prompt `$ ` when it is ready to read a command.
+If **hsh** is invoked with standard input connected to a terminal (determined by [isatty](https://linux.die.net/man/3/isatty)(3)), an *interactive* shell is opened. When executing interactively, **hsh** displays the prompt `$ ` when it is ready to read a command.
 
 Example:
 ```
@@ -33,7 +33,7 @@ $./hsh
 $
 ```
 
-Alternatively, if command line arguments are supplied upon invocation, **shellby** treats the first argument as a file from which to read commands. The supplied file should contain one command per line. **hsh** runs each of the commands contained in the file in order before exiting.
+Alternatively, if command line arguments are supplied upon invocation, **hsh** treats the first argument as a file from which to read commands. The supplied file should contain one command per line. **hsh** runs each of the commands contained in the file in order before exiting.
 
 Example:
 ```
@@ -46,7 +46,7 @@ $
 
 ### Environment :deciduous_tree:
 
-Upon invocation, **shellby** receives and copies the environment of the parent process in which it was executed. This environment is an array of *name-value* strings describing variables in the format *NAME=VALUE*. A few key environmental variables are:
+Upon invocation, **hsh** receives and copies the environment of the parent process in which it was executed. This environment is an array of *name-value* strings describing variables in the format *NAME=VALUE*. A few key environmental variables are:
 
 #### HOME
 The home directory of the current user and the default directory argument for the **cd** builtin command.
@@ -69,7 +69,7 @@ The previous working directory as set by the **cd** command.
 
 ```
 $ echo "echo $OLDPWD" | ./hsh
-/home/vagrant/holberton/printf
+/home/vagrant/ALX/printf
 ```
 
 #### PATH
@@ -82,9 +82,9 @@ $ echo "echo $PATH" | ./hsh
 
 ### Command Execution :hocho:
 
-After receiving a command, **shellby** tokenizes it into words using `" "` as a delimiter. The first word is considered the command and all remaining words are considered arguments to that command. **Shellby** then proceeds with the following actions:
+After receiving a command, **hsh** tokenizes it into words using `" "` as a delimiter. The first word is considered the command and all remaining words are considered arguments to that command. **hsh** then proceeds with the following actions:
 1. If the first character of the command is neither a slash (`\`) nor dot (`.`), the shell searches for it in the list of shell builtins. If there exists a builtin by that name, the builtin is invoked.
-2. If the first character of the command is none of a slash (`\`), dot (`.`), nor builtin, **shellby** searches each element of the **PATH** environmental variable for a directory containing an executable file by that name.
+2. If the first character of the command is none of a slash (`\`), dot (`.`), nor builtin, **hsh** searches each element of the **PATH** environmental variable for a directory containing an executable file by that name.
 3. If the first character of the command is a slash (`\`) or dot (`.`) or either of the above searches was successful, the shell executes the named program with any remaining given arguments in a separate execution environment.
 
 ### Exit Status :wave:
@@ -97,7 +97,7 @@ All builtins return zero on success and one or two on incorrect usage (indicated
 
 ### Signals :exclamation:
 
-While running in interactive mode, **shellby** ignores the keyboard input `Ctrl+c`. Alternatively, an input of end-of-file (`Ctrl+d`) will exit the program.
+While running in interactive mode, **hsh** ignores the keyboard input `Ctrl+c`. Alternatively, an input of end-of-file (`Ctrl+d`) will exit the program.
 
 User hits `Ctrl+d` in the third line.
 ```
@@ -168,7 +168,7 @@ $ echo "echo 'hello' ; echo 'world'" | ./hsh
 Example:
 ```
 $ echo "error! && echo 'hello'" | ./hsh
-./shellby: 1: error!: not found
+./hsh: 1: error!: not found
 $ echo "echo 'all good' && echo 'hello'" | ./hsh
 'all good'
 'hello'
@@ -222,7 +222,7 @@ $ ./hsh
 $ alias show=ls
 $ show
 AUTHORS            builtins_help_2.c  errors.c         linkedlist.c        shell.h       test
-README.md          env_builtins.c     getline.c        locate.c            shellby
+README.md          env_builtins.c     getline.c        locate.c            hsh
 alias_builtins.c   environ.c          helper.c         main.c              split.c
 builtin.c          err_msgs1.c        helpers_2.c      man_1_simple_shell  str_funcs1.c
 builtins_help_1.c  err_msgs2.c        input_helpers.c  proc_file_comm.c    str_funcs2.c
